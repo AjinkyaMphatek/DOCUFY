@@ -280,23 +280,49 @@ def analysis():
 
 
 # ================== PREDICTION ==================
-
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["GET", "POST"])
 def predict():
-    data = request.json
-    image_base64 = data.get("image")
+
+    # ---------------------------
+    # GET → browser / health info
+    # ---------------------------
+    if request.method == "GET":
+        return jsonify({
+            "message": "Use POST method with base64 encoded image",
+            "example": {
+                "method": "POST",
+                "url": "/predict",
+                "body": {
+                    "image": "<base64-encoded-image>"
+                }
+            }
+        }), 200
+
+    # ---------------------------
+    # POST → actual prediction
+    # ---------------------------
+    data = request.get_json(silent=True)
+    image_base64 = data.get("image") if data else None
 
     if not image_base64:
         return jsonify({"error": "No image received"}), 400
 
-    # Decode image
-    image_bytes = base64.b64decode(image_base64)
+    # ---------------------------
+    # Base64 validation
+    # ---------------------------
+    try:
+        image_bytes = base64.b64decode(image_base64)
+    except Exception:
+        return jsonify({"error": "Invalid base64 image"}), 400
+
     image_path = os.path.join(UPLOAD_DIR, f"{uuid4().hex}.jpg")
 
     with open(image_path, "wb") as f:
         f.write(image_bytes)
 
-    # ================== ELA PROCESS ==================
+    # ---------------------------
+    # ELA PROCESS
+    # ---------------------------
     im = Image.open(image_path).convert("RGB")
 
     resaved_path = image_path.replace(".jpg", "_resaved.jpg")
@@ -310,7 +336,9 @@ def predict():
 
     ela_image = ImageEnhance.Brightness(ela_image).enhance(scale)
 
-    # ================== CNN ==================
+    # ---------------------------
+    # CNN Prediction
+    # ---------------------------
     ela_array = array(ela_image.resize((128, 128))) / 255.0
     ela_array = ela_array.reshape(-1, 128, 128, 3)
 
@@ -318,12 +346,14 @@ def predict():
 
     if prediction[1] > 0.5:
         result = "Image is Authentic"
-        score = round(prediction[1] * 100, 2)
+        score = round(float(prediction[1]) * 100, 2)
     else:
         result = "Image is Tampered"
-        score = round(prediction[0] * 100, 2)
+        score = round(float(prediction[0]) * 100, 2)
 
-    # ================== RESPONSE ==================
+    # ---------------------------
+    # Response
+    # ---------------------------
     buffer = io.BytesIO()
     ela_image.save(buffer, format="JPEG")
     ela_base64 = base64.b64encode(buffer.getvalue()).decode()
@@ -332,7 +362,60 @@ def predict():
         "result": result,
         "score": score,
         "ela_image": f"data:image/jpeg;base64,{ela_base64}"
-    })
+    }), 200
+
+# @app.route("/predict", methods=["POST"])
+# def predict():
+#     data = request.json
+#     image_base64 = data.get("image")
+
+#     if not image_base64:
+#         return jsonify({"error": "No image received"}), 400
+
+#     # Decode image
+#     image_bytes = base64.b64decode(image_base64)
+#     image_path = os.path.join(UPLOAD_DIR, f"{uuid4().hex}.jpg")
+
+#     with open(image_path, "wb") as f:
+#         f.write(image_bytes)
+
+#     # ================== ELA PROCESS ==================
+#     im = Image.open(image_path).convert("RGB")
+
+#     resaved_path = image_path.replace(".jpg", "_resaved.jpg")
+#     im.save(resaved_path, "JPEG", quality=90)
+
+#     ela_image = ImageChops.difference(im, Image.open(resaved_path))
+
+#     extrema = ela_image.getextrema()
+#     max_diff = max(e[1] for e in extrema) or 1
+#     scale = 255.0 / max_diff
+
+#     ela_image = ImageEnhance.Brightness(ela_image).enhance(scale)
+
+#     # ================== CNN ==================
+#     ela_array = array(ela_image.resize((128, 128))) / 255.0
+#     ela_array = ela_array.reshape(-1, 128, 128, 3)
+
+#     prediction = ela_model.predict(ela_array, verbose=0).flatten()
+
+#     if prediction[1] > 0.5:
+#         result = "Image is Authentic"
+#         score = round(prediction[1] * 100, 2)
+#     else:
+#         result = "Image is Tampered"
+#         score = round(prediction[0] * 100, 2)
+
+#     # ================== RESPONSE ==================
+#     buffer = io.BytesIO()
+#     ela_image.save(buffer, format="JPEG")
+#     ela_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+#     return jsonify({
+#         "result": result,
+#         "score": score,
+#         "ela_image": f"data:image/jpeg;base64,{ela_base64}"
+#     })
 
 
 # ================== BLOCKCHAIN ==================
