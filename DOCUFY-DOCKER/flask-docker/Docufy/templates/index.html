@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docufy | Dashboard</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <!-- Fonts & CDN -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
+
+    <!-- Local Libraries -->
+    <script src="{{ url_for('static', filename='libraries/p5.js') }}"></script>
+    <script src="{{ url_for('static', filename='libraries/p5.sound.js') }}"></script>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='sketch.js') }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <ul class="navbar-nav">
+        <li class="logo">
+            <a href="{{ url_for('index') }}" class="nav-link">
+                <span class="link-text logo-text">Docufy</span>
+            </a>
+        </li>
+
+        <!-- Issue Document -->
+        <li class="nav-item">
+            <a href="{{ url_for('index') }}" class="nav-link">
+                <span class="link-text">Issue<br>Document</span>
+            </a>
+        </li>
+
+        <!-- Verify -->
+        <li class="nav-item">
+            <a href="{{ url_for('index') }}" class="nav-link">
+                <span class="link-text">Verify<br>Document</span>
+            </a>
+        </li>
+
+        <!-- Blockchain -->
+        <li class="nav-item">
+            <a href="{{ url_for('get_chain') }}" class="nav-link">
+                <span class="link-text">View<br>Blockchain</span>
+            </a>
+        </li>
+
+        <!-- Chain Valid -->
+        <li class="nav-item">
+            <a href="{{ url_for('is_valid') }}" class="nav-link">
+                <span class="link-text">Is Chain Valid</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<main>
+    <div class="heading">
+        <a href="{{ url_for('index') }}">
+            <img src="{{ url_for('static', filename='assets/left-play.svg') }}" alt="">
+        </a>
+
+        <div class="text">
+            <h1>Verify Documents</h1>
+            <p>Upload your document for verification</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="dropzone" class="upload-section">
+            <img id="icon" src="{{ url_for('static', filename='assets/arrow.svg') }}" alt="">
+
+            <!-- <div id="resultText">
+                <img id="uploadedImage" src="" alt="">
+                <figcaption class="img_caption">Uploaded Image</figcaption>
+            </div> -->
+
+            <div id="resultText">
+    <p id="changeText">No file selected</p>
+    <p id="displaySpan"></p>
+
+    <img id="uploadedImage" src="" alt="" style="display:none;">
+    <figcaption class="img_caption">Uploaded Image</figcaption>
+</div>
+
+            <div class="resultImages">
+                <img id="elaImage" src="" alt="">
+                <figcaption class="img_caption">Error Level Analysed Image</figcaption>
+            </div>
+
+            <label class="custom-file-upload">
+                <input id="image-selector" type="file">
+                Choose File
+            </label>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Docufy | Error Level Analysis</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar">
+    <ul class="navbar-nav">
+        <li class="logo">
+            <a href="{{ url_for('index') }}" class="nav-link">
+                <span class="link-text logo-text">Docufy</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="{{ url_for('index') }}" class="nav-link">
+                <span class="link-text">Home</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<!-- ================= MAIN ================= -->
+<main>
+
+<div class="heading">
+    <img src="{{ url_for('static', filename='assets/left-play.svg') }}" alt="">
+    <div class="text">
+        <h1>Error Level Analysis</h1>
+        <p>Analyse document authenticity</p>
+    </div>
+</div>
+<div id ="changeText">
+ 
+</div>
+<div class="container">
+<div class="upload-section">
+
+    <img id="icon" src="{{ url_for('static', filename='assets/arrow.svg') }}" alt="">
+
+    <p id="displayResult">
+        <span id="displaySpan">Upload Image</span>
+    </p>
+
+    <p id="changeText">Drag & drop or choose a file</p>
+
+    <label class="custom-file-upload">
+        <input id="image-selector" type="file" accept="image/*">
+        Choose File
+    </label>
+
+    <div id="load" class="progress-bar" style="--width:0" data-label="Uploading..."></div>
+
+    <div class="resultImages">
+        <figure>
+            <img id="uploadedImage" style="display:none">
+            <figcaption class="img_caption" style="display:none">Uploaded Image</figcaption>
+        </figure>
+
+        <figure>
+            <img id="elaImage" style="display:none">
+            <figcaption class="img_caption" style="display:none">ELA Image</figcaption>
+        </figure>
+
+        <p id="myHash"></p>
+    </div>
+
+</div>
+</div>
+
+</main>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+let progressTimer = null;
+
+/* ---------- INITIAL STATE ---------- */
+$("#uploadedImage, #elaImage, .img_caption").hide();
+
+/* ---------- FILE INPUT ---------- */
+$("#image-selector").on("change", function () {
+
+    if (!this.files || !this.files[0]) {
+        alert("Please select an image");
+        return;
+    }
+
+    const file = this.files[0];
+    const reader = new FileReader();
+
+    $("#changeText").text("Uploading & Analysing...");
+    $("#displaySpan").text("Processing...");
+    startProgress();
+
+    reader.onload = function () {
+
+        const base64Image = reader.result.split(",")[1];
+
+        $.ajax({
+            url: "/predict",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ image: base64Image }),
+
+            success: function (data) {
+                stopProgress();
+
+                $("#uploadedImage").attr("src", reader.result).show();
+                $("#elaImage").attr("src", data.ela_image).show();
+                $(".img_caption").show();
+
+                $("#displaySpan").text(data.result);
+                $("#changeText").text("Analysis Complete");
+                $("#myHash").text("Confidence: " + data.score + "%");
+            },
+
+            error: function () {
+                stopProgress();
+                $("#changeText").text("Error analysing image");
+                alert("Server error. Please try again.");
+            }
+        });
+    };
+
+    reader.readAsDataURL(file);
+});
+
+/* ---------- PROGRESS BAR ---------- */
+function startProgress() {
+    let bar = document.getElementById("load");
+    let width = 1;
+
+    if (progressTimer) clearInterval(progressTimer);
+
+    progressTimer = setInterval(() => {
+        if (width >= 95) {
+            clearInterval(progressTimer);
+        } else {
+            width += 1;
+            bar.style.setProperty("--width", width);
+        }
+    }, 20);
+}
+
+function stopProgress() {
+    clearInterval(progressTimer);
+    document.getElementById("load").style.setProperty("--width", 100);
+}
+</script>
+
+</body>
+</html>

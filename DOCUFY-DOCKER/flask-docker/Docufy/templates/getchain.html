@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Docufy | View Blockchain</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jsonview.css') }}">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='libraries/jsonview.js') }}"></script>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <ul class="navbar-nav">
+        <li class="logo">
+            <span class="link-text logo-text">Docufy</span>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ url_for('index') }}" class="nav-link">
+                <span class="link-text">Dashboard</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ url_for('is_valid') }}" class="nav-link">
+                <span class="link-text">Is Chain Valid</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ url_for('check_image') }}" class="nav-link">
+                <span class="link-text">Check Image</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<main>
+    <div class="heading">
+        <img src="{{ url_for('static', filename='assets/left-play.svg') }}">
+        <div class="text">
+            <h1>View the Blockchain</h1>
+            <p>Complete blockchain ledger</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="upload-section">
+            <button id="viewChain" class="custom-file-upload">
+                View Blockchain
+            </button>
+
+            <div id="changeText" class="root"></div>
+        </div>
+    </div>
+</main>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+$(document).ready(function () {
+
+    $("#viewChain").click(function () {
+
+        $("#changeText").html("Loading blockchain...");
+
+        fetch("{{ url_for('get_chain') }}")
+            .then(res => res.json())
+            .then(data => {
+                jsonView.format(JSON.stringify(data), '#changeText');
+            })
+            .catch(err => {
+                console.error(err);
+                $("#changeText").html("Error loading blockchain");
+            });
+    });
+
+});
+</script>
+
+</body>
+</html>

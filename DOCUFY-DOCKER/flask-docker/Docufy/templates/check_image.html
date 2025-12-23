@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docufy | Check Image</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+    <!-- Fonts & JS -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <ul class="navbar-nav">
+        <li class="logo">
+            <span class="link-text logo-text">Docufy</span>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+        </li>
+
+        <li class="nav-item">
+            <a href="{{ url_for('analysis') }}" class="nav-link">ELA</a>
+        </li>
+    </ul>
+</nav>
+
+<main>
+    <div class="heading">
+        <img src="{{ url_for('static', filename='assets/left-play.svg') }}">
+        <div class="text">
+            <h1>Check Document</h1>
+            <p>Verify document authenticity on blockchain</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="upload-section">
+
+            <img id="icon" src="{{ url_for('static', filename='assets/arrow.svg') }}">
+
+            <p id="displayResult">
+                <img id="tickCross" src="{{ url_for('static', filename='assets/tick.svg') }}">
+                <span id="displaySpan">Upload Image</span>
+            </p>
+
+            <p id="changeText">Drag & Drop or Choose File</p>
+
+            <label class="custom-file-upload">
+                <input id="image-selector" type="file" accept="image/*">
+                Choose File
+            </label>
+
+            <div id="load" class="progress-bar" style="--width:10" data-label="Uploading..."></div>
+
+        </div>
+    </div>
+</main>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+/* ✅ FIXED VARIABLE */
+let base64Image = "";
+
+/* File upload */
+$("#image-selector").on("change", function () {
+
+    if (!this.files.length) return;
+
+    const reader = new FileReader();
+    reader.readAsDataURL(this.files[0]);
+
+    reader.onload = function () {
+
+        base64Image = reader.result.replace(/^data:image.+;base64,/, "");
+
+        $("#changeText").text("Uploading...");
+        progress();
+
+        $.ajax({
+            url: "/check",           // ✅ Flask route
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ image: base64Image }),
+
+            success: function (data) {
+                $("#displaySpan").text(data.message || "Checked Successfully");
+            },
+
+            error: function () {
+                alert("Server error. Please try again.");
+            }
+        });
+    };
+});
+
+/* Progress bar */
+function progress() {
+    let bar = document.getElementById("load");
+    let width = 10;
+    let id = setInterval(frame, 25);
+
+    function frame() {
+        if (width >= 100) {
+            clearInterval(id);
+        } else {
+            width++;
+            bar.style.setProperty("--width", width);
+        }
+    }
+}
+</script>
+
+</body>
+</html>

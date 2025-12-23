@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Docufy | Issue Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar">
+<ul class="navbar-nav">
+
+<li class="logo">
+    <a href="{{ url_for('index') }}" class="nav-link">
+        <span class="link-text logo-text">Docufy</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ url_for('issue') }}" class="nav-link">
+        <span class="link-text">Issue<br>Document</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ url_for('index') }}" class="nav-link">
+        <span class="link-text">Verify<br>Document</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ url_for('get_chain') }}" class="nav-link">
+        <span class="link-text">View<br>Blockchain</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ url_for('is_valid') }}" class="nav-link">
+        <span class="link-text">Is Chain Valid</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ url_for('check_image') }}" class="nav-link">
+        <span class="link-text">Check Image</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a href="{{ url_for('analysis') }}" class="nav-link">
+        <span class="link-text">Error Level Analysis</span>
+    </a>
+</li>
+
+</ul>
+</nav>
+
+<!-- ================= MAIN ================= -->
+<main>
+
+<div class="heading">
+    <img src="{{ url_for('static', filename='assets/left-play.svg') }}" alt="">
+    <div class="text">
+        <h1>Issue Document</h1>
+        <p>Upload document to blockchain</p>
+    </div>
+</div>
+
+<div class="container">
+<div class="upload-section">
+
+<img src="{{ url_for('static', filename='assets/arrow.svg') }}" alt="">
+
+<p id="changeText">
+    Drag and drop or choose a file to issue on blockchain
+</p>
+
+<div class="progress-bar" id="progress" style="display:none">
+    Uploading...
+</div>
+
+<label class="custom-file-upload">
+    <input id="image-selector" type="file" accept="image/*">
+    Choose File
+</label>
+
+</div>
+</div>
+
+</main>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+let base64Image = null;
+
+$("#image-selector").on("change", function () {
+
+    if (!this.files || !this.files[0]) {
+        alert("Please select an image");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(this.files[0]);
+
+    reader.onload = function () {
+
+        base64Image = reader.result.split(",")[1];
+
+        $("#changeText").text("Uploading to blockchain...");
+        $("#progress").show();
+
+        fetch("{{ url_for('minechain') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ image: base64Image })
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data);
+            $("#progress").hide();
+            $("#changeText").text("Document successfully added to blockchain ✔");
+        })
+        .catch(err => {
+            console.error(err);
+            $("#progress").hide();
+            $("#changeText").text("Error issuing document");
+        });
+    };
+});
+</script>
+
+</body>
+</html>
